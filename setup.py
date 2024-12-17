@@ -57,7 +57,7 @@ setup(
     package_dir={'': 'src'},
     package_data={'afaligner': ['templates/*']},
     install_requires=[
-        'aeneas>=1.7.3.0',
+         'git+https://github.com/bhattarai333/aeneas.git@master#egg=aeneas',
         'Jinja2>=3.1.2',
     ],
     ext_modules=[CTypesLibrary(
