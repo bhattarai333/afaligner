@@ -57,10 +57,8 @@ setup(
     package_dir={'': 'src'},
     package_data={'afaligner': ['templates/*']},
     install_requires=[
+        'py3-aeneas',
         'Jinja2>=3.1.2',
-    ],
-    dependency_links=[
-    'git+https://github.com/bhattarai333/aeneas.git@master#egg=aeneas'
     ],
     ext_modules=[CTypesLibrary(
         'afaligner.c_modules.dtwbd',
