@@ -5,6 +5,8 @@
 #include "sparse_matrix.h"
 #include "uthash.h"
 #include <stdbool.h>
+#include "fastdtwbd.h"
+
 
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
