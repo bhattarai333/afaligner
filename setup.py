@@ -62,7 +62,7 @@ setup(
     ],
     ext_modules=[CTypesLibrary(
         'afaligner.c_modules.dtwbd',
-        sources=['src/afaligner/c_modules/dtwbd.c', 'src/afaligner/c_modules/sparse_matrix.c'],
+        sources=['src/afaligner/c_modules/dtwbd.c', 'src/afaligner/c_modules/sparse_matrix.c', 'src/afaligner/c_modules/logger.c'],
         define_macros=[('BUILDING_FASTDTWBD', '1')]  # Define BUILDING_DTWBD for exporting symbols
     )],
     cmdclass={'build_ext': build_ext}
