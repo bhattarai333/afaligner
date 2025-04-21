@@ -15,7 +15,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
 
     // Create sparse matrix
     sparse_matrix* D_matrix = create_sparse_matrix(n, m);
-    if (!D_matrix) {
+    if (D_matrix == NULL) {
         log_error("Failed to create sparse matrix");
         return -1;
     }
@@ -27,12 +27,10 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
     ssize_t path_len = 0;
     bool match = false;
 
-    // Initialize D_matrix (only within window)
+    // Initialize D_matrix
     for (size_t i = 0; i < n; i++) {
-        size_t start_j = window ? window[2*i] : 0;
-        size_t end_j = window ? window[2*i+1] : m;
-
-        for (size_t j = start_j; j < end_j; j++) {
+        for (size_t j = window ? window[2*i] : 0;
+             j < (window ? window[2*i+1] : m); j++) {
             D_matrix_element elem;
             elem.distance = euclid_distance(&s[i*l], &t[j*l], l);
             elem.prev_i = -1;
@@ -118,9 +116,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
             ssize_t next_i = curr.prev_i;
             ssize_t next_j = curr.prev_j;
 
-            if (next_i < 0 ||
-
-next_j < 0) break;
+            if (next_i < 0 || next_j < 0) break;
 
             curr_i = next_i;
             curr_j = next_j;
