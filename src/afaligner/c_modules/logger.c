@@ -15,6 +15,13 @@ static const char* level_strings[] = {
     "ERROR"
 };
 
+static void ensure_logger_initialized() {
+    if (!logger_initialized) {
+        init_logger(DEFAULT_LOG_FILE);
+        logger_initialized = true;
+    }
+}
+
 static void create_directory(const char* path) {
     char tmp[256];
     char *p = NULL;
@@ -69,6 +76,7 @@ void close_logger(void) {
 }
 
 static void log_message(LogLevel level, const char* format, va_list args) {
+    ensure_logger_initialized();
     if (!log_file) return;
 
     time_t now = time(NULL);
@@ -83,6 +91,7 @@ static void log_message(LogLevel level, const char* format, va_list args) {
 }
 
 void log_debug(const char* format, ...) {
+    ensure_logger_initialized();
     va_list args;
     va_start(args, format);
     log_message(LOG_DEBUG, format, args);
@@ -90,6 +99,7 @@ void log_debug(const char* format, ...) {
 }
 
 void log_info(const char* format, ...) {
+    ensure_logger_initialized();
     va_list args;
     va_start(args, format);
     log_message(LOG_INFO, format, args);
@@ -97,6 +107,7 @@ void log_info(const char* format, ...) {
 }
 
 void log_warn(const char* format, ...) {
+    ensure_logger_initialized();
     va_list args;
     va_start(args, format);
     log_message(LOG_WARN, format, args);
@@ -104,6 +115,7 @@ void log_warn(const char* format, ...) {
 }
 
 void log_error(const char* format, ...) {
+    ensure_logger_initialized();
     va_list args;
     va_start(args, format);
     log_message(LOG_ERROR, format, args);
@@ -111,9 +123,11 @@ void log_error(const char* format, ...) {
 }
 
 void log_function_entry(const char* function_name) {
+    ensure_logger_initialized();
     log_debug("Entering function: %s", function_name);
 }
 
 void log_function_exit(const char* function_name, ssize_t result) {
+    ensure_logger_initialized();
     log_debug("Exiting function: %s (result: %zd)", function_name, result);
 }
