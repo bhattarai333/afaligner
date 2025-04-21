@@ -67,9 +67,7 @@ void update_window(size_t *window, size_t n, size_t m, ssize_t i, ssize_t j) {
     log_function_entry("update_window");
     log_debug("Updating window at i=%zd, j=%zd", i, j);
 
-    if (i < 0 ||
-
-i >= n) {
+    if (i < 0 || i >= n) {
         log_debug("Index i out of bounds, skipping update");
         log_function_exit("update_window", 0);
         return;
@@ -107,7 +105,7 @@ double euclid_distance(double *x, double *y, size_t l) {
     double result = sqrt(sum);
 
     log_debug("Computed Euclidean distance: %f", result);
-    log_function_exit("euclid_distance", 0);
+    log_function_exit("euclid_distance", result);
     return result;
 }
 
@@ -115,25 +113,21 @@ double get_distance(D_matrix_element *D_matrix, size_t n, size_t m, size_t *wind
     log_function_entry("get_distance");
     log_debug("Getting distance for i=%zu, j=%zu", i, j);
 
-    if (i < 0 || i >= n || j < 0 ||
-
-j >= m) {
+    if (i < 0 || i >= n || j < 0 ||j >= m) {
         log_debug("Position out of bounds, returning DBL_MAX");
-        log_function_exit("get_distance", 0);
+        log_function_exit("get_distance", DBL_MAX);
         return DBL_MAX;
     }
 
-    if (window == NULL ||
-
-(j >= window[2*i] && j < window[2*i+1])) {
+    if (window == NULL || (j >= window[2*i] && j < window[2*i+1])) {
         double distance = D_matrix[i*m+j].distance;
         log_debug("Retrieved distance: %f", distance);
-        log_function_exit("get_distance", 0);
+        log_function_exit("get_distance", distance);
         return distance;
     }
 
     log_debug("Position outside window, returning DBL_MAX");
-    log_function_exit("get_distance", 0);
+    log_function_exit("get_distance", distance);
     return DBL_MAX;
 }
 
@@ -153,7 +147,7 @@ D_matrix_element get_best_candidate(D_matrix_element *candidates, size_t n) {
     }
 
     log_debug("Best candidate selected with distance %f", best_candidate.distance);
-    log_function_exit("get_best_candidate", 0);
+    log_function_exit("get_best_candidate", best_candidate.distance);
     return best_candidate;
 }
 
@@ -172,5 +166,5 @@ void reverse_path(size_t *path, ssize_t path_len) {
     }
 
     log_debug("Path reversal completed");
-    log_function_exit("reverse_path", 0);
+    log_function_exit("reverse_path", path_len);
 }

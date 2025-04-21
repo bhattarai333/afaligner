@@ -30,9 +30,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
     // Initialize D_matrix
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < m; j++) {
-            if (window == NULL ||
-
-(j >= window[2*i] && j < window[2*i+1])) {
+            if (window == NULL || (j >= window[2*i] && j < window[2*i+1])) {
                 D_matrix[i*m + j].distance = euclid_distance(&s[i*l], &t[j*l], l);
                 D_matrix[i*m + j].prev_i = -1;
                 D_matrix[i*m + j].prev_j = -1;
@@ -115,9 +113,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
             ssize_t next_i = D_matrix[curr_i*m + curr_j].prev_i;
             ssize_t next_j = D_matrix[curr_i*m + curr_j].prev_j;
 
-            if (next_i < 0 ||
-
-next_j < 0) break;
+            if (next_i < 0 || next_j < 0) break;
 
             curr_i = next_i;
             curr_j = next_j;
