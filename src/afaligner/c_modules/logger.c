@@ -5,6 +5,7 @@
 #include <time.h>
 #include <sys/stat.h>
 #include "logger.h"
+#include <stdbool.h>
 
 static FILE* log_file = NULL;
 static const char* level_strings[] = {

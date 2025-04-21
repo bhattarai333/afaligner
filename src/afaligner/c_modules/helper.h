@@ -5,6 +5,7 @@
 
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
+#include <stdbool.h>
 typedef SSIZE_T ssize_t;
 #endif
 

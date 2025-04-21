@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <sys/types.h>
 #include <float.h>
+#include <stdbool.h>
 #include "helper.h"
 #include "logger.h"
 

@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include "helper.h"
 #include "logger.h"
+#include <stdbool.h>
 
 ssize_t FastDTWBD(double *s, double *t, size_t n, size_t m, size_t l,
                   double skip_penalty, int radius, double *path_distance,
