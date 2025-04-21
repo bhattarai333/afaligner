@@ -1,6 +1,7 @@
 #include "sparse_matrix.h"
 #include "uthash.h"
 #include <string.h>
+#include <stdbool.h>
 
 SparseMatrix *create_sparse_matrix() {
     SparseMatrix *mat = malloc(sizeof(SparseMatrix));

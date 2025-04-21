@@ -4,6 +4,7 @@
 #include "dtwbd.h"
 #include "sparse_matrix.h"
 #include "uthash.h"
+#include <stdbool.h>
 
 
 ssize_t dtwbd(

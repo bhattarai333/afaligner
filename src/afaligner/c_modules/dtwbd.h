@@ -15,8 +15,8 @@ typedef struct {
 
 // Main DTWBD function
 ssize_t dtwbd(
-    double **x, size_t n,
-    double **y, size_t m,
+    double *x, size_t n,
+    double *y, size_t m,
     size_t dim,
     size_t *window,
     double skip_penalty,
