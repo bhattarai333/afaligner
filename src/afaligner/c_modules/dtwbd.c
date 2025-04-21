@@ -11,11 +11,11 @@
 typedef SSIZE_T ssize_t;
 
 #ifdef BUILDING_DTWBD  // This flag will be set during the build of the shared library
-__declspec(dllexport) size_t FastDTWBD();
-__declspec(dllexport) size_t DTWBD();
+__declspec(dllexport) ssize_t FastDTWBD();
+__declspec(dllexport) ssize_t DTWBD();
 #else
-__declspec(dllimport) size_t FastDTWBD();
-__declspec(dllimport) size_t DTWBD();
+__declspec(dllimport) ssize_t FastDTWBD();
+__declspec(dllimport) ssize_t DTWBD();
 #endif
 
 #else
@@ -26,8 +26,8 @@ __declspec(dllimport) size_t DTWBD();
 #define EXPORT
 #endif
 
-EXPORT size_t FastDTWBD();
-EXPORT size_t DTWBD();
+EXPORT ssize_t FastDTWBD();
+EXPORT ssize_t DTWBD();
 #endif
 
 
