@@ -12,24 +12,8 @@
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
 
-#ifdef BUILDING_DTWBD  // This flag will be set during the build of the shared library
-__declspec(dllexport) ssize_t FastDTWBD();
-__declspec(dllexport) ssize_t DTWBD();
-#else
-__declspec(dllimport) ssize_t FastDTWBD();
-__declspec(dllimport) ssize_t DTWBD();
-#endif
-
-#else
-// Non-Windows platforms (for portability, using the standard GCC method)
-#ifdef BUILDING_DTWBD
-#define EXPORT __attribute__((visibility("default")))
-#else
-#define EXPORT
-#endif
-
-EXPORT ssize_t FastDTWBD();
-EXPORT ssize_t DTWBD();
+__declspec(dllimport) size_t FastDTWBD();
+__declspec(dllimport) size_t DTWBD();
 #endif
 
 
