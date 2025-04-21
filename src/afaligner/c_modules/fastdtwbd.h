@@ -7,10 +7,18 @@
 #include <stddef.h>
 #include "dtwbd.h"  // Including dtwbd.h for shared structures and functions
 
-#ifdef BUILDING_FASTDTWBD
-    #define EXPORT __attribute__((visibility("default")))  // Ensure the symbol is visible
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef BUILDING_FASTDTWBD
+        #define EXPORT __declspec(dllexport)
+    #else
+        #define EXPORT __declspec(dllimport)
+    #endif
 #else
-    #define EXPORT
+    #ifdef BUILDING_FASTDTWBD
+        #define EXPORT __attribute__((visibility("default")))
+    #else
+        #define EXPORT
+    #endif
 #endif
 
 // FastDTWBD function prototype (make sure it's marked with EXPORT)
