@@ -13,12 +13,21 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
     log_function_entry("DTWBD");
     log_info("Starting DTWBD with n=%zu, m=%zu, l=%zu, skip_penalty=%f", n, m, l, skip_penalty);
 
-    // Create sparse matrix
-    sparse_matrix* D_matrix = create_sparse_matrix(n, m);
-    if (!D_matrix) {
-        log_error("Failed to create sparse matrix");
+    // Calculate total elements needed within window
+    size_t total_elements = 0;
+    for (size_t i = 0; i < n; i++) {
+        size_t start_j = window ? window[2*i] : 0;
+        size_t end_j = window ? window[2*i+1] : m;
+        total_elements += (end_j - start_j);
+    }
+
+    // Allocate only needed elements
+    D_matrix_element *D_matrix = malloc(total_elements * sizeof(D_matrix_element));
+    if (D_matrix == NULL) {
+        log_error("Failed to allocate D_matrix");
         return -1;
     }
+
 
     // Initialize variables
     size_t end_i = 0;
