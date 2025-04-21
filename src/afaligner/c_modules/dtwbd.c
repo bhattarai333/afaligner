@@ -213,54 +213,81 @@ ssize_t FastDTWBD(
     return path_len;
 }
 
-// Add other functions with similar log_message calls where appropriate.
-
-
-
-
 double *get_coarsed_sequence(double *s, size_t n, size_t l) {
-    size_t coarsed_sequence_len = n / 2;
-    double *coarsed_sequence = malloc(coarsed_sequence_len * l * sizeof(double));
+    LOG("Entering get_coarsed_sequence: n = %zu, l = %zu\n", n, l);
 
-    for (size_t i = 0; 2 * i + 1 < n ; i++) {
+    if (n % 2 != 0) {
+        LOG("Warning: n is not even, which may cause issues in coarsing.\n");
+    }
+
+    size_t coarsed_sequence_len = n / 2;
+    LOG("Coarsed sequence length: %zu\n", coarsed_sequence_len);
+
+    double *coarsed_sequence = malloc(coarsed_sequence_len * l * sizeof(double));
+    if (!coarsed_sequence) {
+        LOG("Error: Memory allocation for coarsed_sequence failed.\n");
+        return NULL;
+    }
+
+    LOG("Memory allocated for coarsed_sequence.\n");
+
+    for (size_t i = 0; 2 * i + 1 < n; i++) {
         for (size_t j = 0; j < l; j++) {
-            coarsed_sequence[l*i+j] = (s[l*(2*i)+j] + s[l*(2*i+1)+j]) / 2;
+            coarsed_sequence[l * i + j] = (s[l * (2 * i) + j] + s[l * (2 * i + 1) + j]) / 2;
         }
     }
 
+    LOG("Exiting get_coarsed_sequence.\n");
     return coarsed_sequence;
 }
 
 
 size_t *get_window(size_t n, size_t m, size_t *path_buffer, size_t path_len, int radius) {
-    size_t *window = malloc(2*n*sizeof(size_t));
+    LOG("Entering get_window: n = %zu, m = %zu, path_len = %zu, radius = %d\n", n, m, path_len, radius);
+
+    size_t *window = malloc(2 * n * sizeof(size_t));
+    if (!window) {
+        LOG("Error: Memory allocation for window failed.\n");
+        return NULL;
+    }
+    LOG("Memory allocated for window.\n");
 
     for (size_t i = 0; i < n; i++) {
-        window[2*i] = m;    // maximum value for lower limit
-        window[2*i+1] = 0;  // minimum value for upper limit
+        window[2 * i] = m;    // maximum value for lower limit
+        window[2 * i + 1] = 0;  // minimum value for upper limit
     }
 
+    LOG("Initial window setup complete. Starting to update window with path buffer.\n");
+
     for (size_t k = 0; k < path_len; k++) {
-        size_t i = path_buffer[2*k];
-        size_t j = path_buffer[2*k+1];
+        size_t i = path_buffer[2 * k];
+        size_t j = path_buffer[2 * k + 1];
+
+        LOG("Processing path_buffer[%zu]: i = %zu, j = %zu\n", k, i, j);
 
         for (ssize_t x = -radius; x < radius + 1; x++) {
+            LOG("Updating window limits for x = %zd\n", x);
+
             // update lower window limit
-            update_window(window, n, m, 2*(i + x), 2*(j - radius));
-            update_window(window, n, m, 2*(i + x) + 1, 2*(j - radius));
+            update_window(window, n, m, 2 * (i + x), 2 * (j - radius));
+            update_window(window, n, m, 2 * (i + x) + 1, 2 * (j - radius));
 
             // update upper window limit
-            update_window(window, n, m, 2*(i + x), 2*(j + radius + 1) + 1);
-            update_window(window, n, m, 2*(i + x) + 1, 2*(j + radius + 1) + 1);
+            update_window(window, n, m, 2 * (i + x), 2 * (j + radius + 1) + 1);
+            update_window(window, n, m, 2 * (i + x) + 1, 2 * (j + radius + 1) + 1);
         }
     }
 
+    LOG("Exiting get_window.\n");
     return window;
 }
 
 
 void update_window(size_t *window, size_t n, size_t m, ssize_t i, ssize_t j) {
-    if (i < 0 || i >= n) return;
+    if (i < 0 || i >= n) {
+        LOG("update_window: Index i = %zd is out of bounds (0 to %zu).\n", i, n - 1);
+        return;
+    }
 
     if (j < 0) {
         j = 0;
@@ -268,11 +295,16 @@ void update_window(size_t *window, size_t n, size_t m, ssize_t i, ssize_t j) {
     if (j > m - 1) {
         j = m - 1;
     }
-    if (j < window[2*i]) {
-        window[2*i] = j;
+
+    LOG("update_window: i = %zd, j = %zd, current window limits: [%zu, %zu]\n", i, j, window[2 * i], window[2 * i + 1]);
+
+    if (j < window[2 * i]) {
+        window[2 * i] = j;
+        LOG("update_window: Lower limit updated for i = %zd: new window[2 * i] = %zu\n", i, j);
     }
-    if (j >= window[2*i+1]) {
-        window[2*i+1] = j + 1;
+
+    if (j >= window[2 * i + 1]) {
+        window[2 * i + 1] = j + 1;
+        LOG("update_window: Upper limit updated for i = %zd: new window[2 * i + 1] = %zu\n", i, j + 1);
     }
 }
-
