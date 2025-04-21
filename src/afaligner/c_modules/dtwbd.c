@@ -11,9 +11,6 @@
 #if defined(_MSC_VER)
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
-
-__declspec(dllimport) size_t FastDTWBD();
-__declspec(dllimport) size_t DTWBD();
 #endif
 
 
@@ -132,6 +129,7 @@ void reverse_path(size_t *path, ssize_t path_len) {
         path[2 * j] = tmp_s;
         path[2 * j + 1] = tmp_t;
     }
+}
 
 ssize_t FastDTWBD(
     double *s,  // first sequence of MFCC frames – n x l contiguous array
@@ -226,4 +224,3 @@ void update_window(size_t *window, size_t n, size_t m, ssize_t i, ssize_t j) {
     }
 }
 
-}

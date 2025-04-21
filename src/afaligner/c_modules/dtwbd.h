@@ -14,8 +14,10 @@ typedef struct {
     ssize_t prev_j;
 } D_matrix_element;
 
+
+
 // Main DTWBD function
-ssize_t DTWBD(
+EXPORT ssize_t DTWBD(
     double *x, size_t n,
     double *y, size_t m,
     size_t dim,
