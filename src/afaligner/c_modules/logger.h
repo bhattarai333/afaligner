@@ -1,6 +1,8 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
+#define DEFAULT_LOG_FILE "./output/afaligner.log"
+
 #include <stdio.h>
 #include <time.h>
 
