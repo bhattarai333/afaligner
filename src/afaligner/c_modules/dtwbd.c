@@ -1,3 +1,23 @@
+#define _POSIX_C_SOURCE 200809L
+#include <stdlib.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <float.h>
+#include <stdbool.h>
+#include "helper.h"
+#include "logger.h"
+
+// Add these typedefs if sys/types.h doesn't provide ssize_t
+#ifndef ssize_t
+#ifdef _WIN32
+typedef long long ssize_t;
+#else
+typedef long ssize_t;
+#endif
+#endif
+
+
 ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
               double skip_penalty, size_t *window, double *path_distance,
               size_t *path_buffer) {
