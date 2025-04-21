@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
+#include <stdio.h>  // For logging
 #include "dtwbd.h"
 #include "sparse_matrix.h"
 #include "uthash.h"
@@ -13,6 +14,32 @@
 typedef SSIZE_T ssize_t;
 #endif
 
+// Log file pointer
+FILE *log_file = NULL;
+
+// Open log file for writing
+void open_log_file() {
+    log_file = fopen("./output/afaligner.log", "a");
+    if (!log_file) {
+        perror("Error opening log file");
+        exit(1);
+    }
+}
+
+// Close log file
+void close_log_file() {
+    if (log_file) {
+        fclose(log_file);
+    }
+}
+
+// Log a message to the log file
+void log_message(const char *message) {
+    if (log_file) {
+        fprintf(log_file, "%s\n", message);
+        fflush(log_file);  // Ensure it's written immediately
+    }
+}
 
 ssize_t DTWBD(
     double *s, size_t n,
@@ -23,7 +50,14 @@ ssize_t DTWBD(
     size_t *path_buffer,
     double *path_distance
 ) {
+    log_message("Entering DTWBD function");
+
     SparseMatrix *D_sparse = create_sparse_matrix();
+    if (!D_sparse) {
+        log_message("Error: Failed to create sparse matrix");
+        return -1;
+    }
+
     double d;
 
     for (size_t i = 0; i < n; i++) {
@@ -108,19 +142,27 @@ ssize_t DTWBD(
     }
 
     free_sparse_matrix(D_sparse);
+
+    log_message("Exiting DTWBD function");
     return path_len;
 }
 
 double euclid_distance(double *x, double *y, size_t l) {
+    log_message("Entering euclid_distance function");
+
     double sum = 0;
     for (size_t i = 0; i < l; i++) {
         double v = x[i] - y[i];
         sum += v * v;
     }
+
+    log_message("Exiting euclid_distance function");
     return sqrt(sum);
 }
 
 void reverse_path(size_t *path, ssize_t path_len) {
+    log_message("Entering reverse_path function");
+
     for (size_t i = 0, j = path_len - 1; i < j; i++, j--) {
         size_t tmp_s = path[2 * i];
         size_t tmp_t = path[2 * i + 1];
@@ -129,6 +171,8 @@ void reverse_path(size_t *path, ssize_t path_len) {
         path[2 * j] = tmp_s;
         path[2 * j + 1] = tmp_t;
     }
+
+    log_message("Exiting reverse_path function");
 }
 
 ssize_t FastDTWBD(
@@ -142,10 +186,13 @@ ssize_t FastDTWBD(
     double *path_distance,  // place to store warping path distance
     size_t *path_buffer     // buffer to store resulting warping path – (n+m) x 2 contiguous array
 ) {
+    log_message("Entering FastDTWBD function");
+
     ssize_t path_len;
     size_t min_sequence_len = 2 * (radius + 1) + 1;
 
     if (n < min_sequence_len || m < min_sequence_len) {
+        log_message("Sequence length too short, using DTWBD directly");
         return DTWBD(s, t, n, m, l, skip_penalty, NULL, path_distance, path_buffer);
     }
 
@@ -162,8 +209,13 @@ ssize_t FastDTWBD(
     free(coarsed_t);
     free(window);
 
+    log_message("Exiting FastDTWBD function");
     return path_len;
 }
+
+// Add other functions with similar log_message calls where appropriate.
+
+
 
 
 double *get_coarsed_sequence(double *s, size_t n, size_t l) {
