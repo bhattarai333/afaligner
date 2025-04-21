@@ -5,12 +5,34 @@
 #include <stdio.h>
 #include <time.h>
 
+// Add this to export the functions
+#define EXPORT __attribute__((visibility("default")))
 
 typedef struct {
     double distance;
     ssize_t prev_i;
     ssize_t prev_j;
 } D_matrix_element;
+
+// Export the main functions
+EXPORT ssize_t FastDTWBD(
+    double *s, double *t,
+    size_t n, size_t m, size_t l,
+    double skip_penalty,
+    size_t radius,
+    double *path_distance,
+    size_t *path_buffer
+);
+
+EXPORT ssize_t DTWBD(
+    double *s, double *t,
+    size_t n, size_t m, size_t l,
+    double skip_penalty,
+    size_t *window,
+    double *path_distance,
+    size_t *path_buffer
+);
+
 
 ssize_t FastDTWBD(
     double *s, double *t,
