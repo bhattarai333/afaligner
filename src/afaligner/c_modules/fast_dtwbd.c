@@ -24,9 +24,7 @@ EXPORT ssize_t FastDTWBD(double *s, double *t, size_t n, size_t m, size_t l,
     ssize_t path_len;
     size_t min_sequence_len = 2 * (radius + 1) + 1;
 
-    if (n < min_sequence_len ||
-
-m < min_sequence_len) {
+    if (n < min_sequence_len || m < min_sequence_len) {
         log_debug("Sequences too short, falling back to regular DTWBD");
         path_len = DTWBD(s, t, n, m, l, skip_penalty, NULL, path_distance, path_buffer);
         log_function_exit("FastDTWBD", path_len);
