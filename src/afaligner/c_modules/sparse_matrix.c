@@ -47,9 +47,14 @@ bool set_element(SparseMatrix *mat, size_t i, size_t j, D_matrix_element value) 
             return false;
         }
 
-        log_debug("Created new entry at (%zu, %zu) with value = %f", i, j, (double)value);
+        // Log with details from D_matrix_element (distance, prev_i, prev_j)
+        log_debug("Created new entry at (%zu, %zu) with distance = %f, prev_i = %zd, prev_j = %zd",
+                  i, j, value.distance, value.prev_i, value.prev_j);
     } else {
-        log_debug("Updated existing entry at (%zu, %zu) from %f to %f", i, j, (double)entry->value, (double)value);
+        // Log with previous entry's details and updated value
+        log_debug("Updated existing entry at (%zu, %zu) from distance = %f, prev_i = %zd, prev_j = %zd to distance = %f, prev_i = %zd, prev_j = %zd",
+                  i, j, entry->value.distance, entry->value.prev_i, entry->value.prev_j,
+                  value.distance, value.prev_i, value.prev_j);
     }
 
     entry->value = value;
@@ -67,7 +72,9 @@ D_matrix_element *get_element(SparseMatrix *mat, size_t i, size_t j) {
 
     HASH_FIND(hh, mat->table, &key, sizeof(Index), entry);
     if (entry) {
-        log_debug("Accessed element at (%zu, %zu) with value = %f", i, j, (double)entry->value);
+        // Log the access with details of the element
+        log_debug("Accessed element at (%zu, %zu) with distance = %f, prev_i = %zd, prev_j = %zd",
+                  i, j, entry->value.distance, entry->value.prev_i, entry->value.prev_j);
         return &entry->value;
     } else {
         log_debug("No entry found at (%zu, %zu)", i, j);
