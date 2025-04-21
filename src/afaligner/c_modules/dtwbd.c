@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <float.h>
 #include <stdio.h>
+#include <time.h>
+
 
 typedef struct {
     double distance;
@@ -18,6 +20,58 @@ ssize_t FastDTWBD(
     double *path_distance,
     size_t *path_buffer
 );
+
+// Global file pointer for logging
+static FILE* log_fp = NULL;
+
+// Initialize logging
+static void init_logging() {
+    if (log_fp == NULL) {
+        log_fp = fopen("./output/afaligner.log", "a");
+        if (log_fp == NULL) {
+            fprintf(stderr, "Failed to open log file ./output/afaligner.log\n");
+            return;
+        }
+
+        // Write header with timestamp
+        time_t now = time(NULL);
+        char timestamp[64];
+        strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+        fprintf(log_fp, "\n=== New session started at %s ===\n", timestamp);
+        fflush(log_fp);
+    }
+}
+
+// Close logging
+static void close_logging() {
+    if (log_fp != NULL) {
+        fclose(log_fp);
+        log_fp = NULL;
+    }
+}
+
+// Modify the logging macros
+#define DEBUG_LOG(fmt, ...) do { \
+    init_logging(); \
+    if (log_fp) { \
+        fprintf(log_fp, "[DEBUG] %s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__); \
+        fflush(log_fp); \
+    } \
+} while(0)
+
+#define ERROR_LOG(fmt, ...) do { \
+    init_logging(); \
+    if (log_fp) { \
+        fprintf(log_fp, "[ERROR] %s:%d: " fmt "\n", __func__, __LINE__, ##__VA_ARGS__); \
+        fflush(log_fp); \
+    } \
+} while(0)
+
+// Add cleanup function that should be called when the library is unloaded
+__attribute__((destructor)) static void cleanup_logging() {
+    close_logging();
+}
+
 
 // Helper function to convert 2D coordinates to 1D index in banded matrix
 static inline size_t get_band_index(size_t i, size_t j, size_t band_width, size_t j_offset) {
@@ -131,6 +185,8 @@ ssize_t DTWBD(
     double *path_distance,
     size_t *path_buffer
 ) {
+    init_logging();  // Ensure log file is open
+    DEBUG_LOG("Started with n=%zu, m=%zu, l=%zu", n, m, l);
     // Calculate band width based on window size
     size_t band_width;
     if (window) {
@@ -267,6 +323,8 @@ ssize_t FastDTWBD(
     double *path_distance,
     size_t *path_buffer
 ) {
+    init_logging();  // Ensure log file is open
+    DEBUG_LOG("Started with n=%zu, m=%zu, l=%zu, radius=%zu", n, m, l, radius);
     // Base case for recursion
     if (n < 2 || m < 2) {
         return DTWBD(s, t, n, m, l, skip_penalty, NULL, path_distance, path_buffer);

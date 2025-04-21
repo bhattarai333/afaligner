@@ -25,6 +25,8 @@ def align(
         times_as_timedelta=False, language=Language.ENG,
 ):
 
+    print("Using bhattarai333's branch of afaligner")
+
     if skip_penalty is None:
         skip_penalty = 0.75
 
