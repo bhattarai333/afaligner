@@ -6,6 +6,30 @@
 #include "uthash.h"
 #include <stdbool.h>
 
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+
+#ifdef BUILDING_DTWBD  // This flag will be set during the build of the shared library
+__declspec(dllexport) size_t FastDTWBD();
+__declspec(dllexport) size_t DTWBD();
+#else
+__declspec(dllimport) size_t FastDTWBD();
+__declspec(dllimport) size_t DTWBD();
+#endif
+
+#else
+// Non-Windows platforms (for portability, using the standard GCC method)
+#ifdef BUILDING_DTWBD
+#define EXPORT __attribute__((visibility("default")))
+#else
+#define EXPORT
+#endif
+
+EXPORT size_t FastDTWBD();
+EXPORT size_t DTWBD();
+#endif
+
 
 ssize_t dtwbd(
     double *s, size_t n,
