@@ -17,7 +17,7 @@ __declspec(dllimport) size_t DTWBD();
 #endif
 
 
-ssize_t dtwbd(
+ssize_t DTWBD(
     double *s, size_t n,
     double *t, size_t m,
     size_t dim,

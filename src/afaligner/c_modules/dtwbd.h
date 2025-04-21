@@ -15,7 +15,7 @@ typedef struct {
 } D_matrix_element;
 
 // Main DTWBD function
-ssize_t dtwbd(
+ssize_t DTWBD(
     double *x, size_t n,
     double *y, size_t m,
     size_t dim,
