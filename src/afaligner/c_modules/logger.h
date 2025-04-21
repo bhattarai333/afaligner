@@ -24,6 +24,7 @@ void log_info(const char* format, ...);
 void log_warn(const char* format, ...);
 void log_error(const char* format, ...);
 
+
 // Function entry/exit logging
 void log_function_entry(const char* function_name);
 void log_function_exit(const char* function_name, ssize_t result);
