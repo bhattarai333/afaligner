@@ -1,110 +1,42 @@
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-#include <stdio.h>
-#include "helper.h"
+#include "logger.h"
 
-double *get_coarsed_sequence(double *s, size_t n, size_t l) {
-    size_t coarsed_sequence_len = n / 2;
-    double *coarsed_sequence = malloc(coarsed_sequence_len * l * sizeof(double));
+ssize_t FastDTWBD(double *s, double *t, size_t n, size_t m, size_t l,
+                  double skip_penalty, int radius, double *path_distance,
+                  size_t *path_buffer) {
+    log_function_entry("FastDTWBD");
+    log_info("Parameters: n=%zu, m=%zu, l=%zu, skip_penalty=%f, radius=%d",
+             n, m, l, skip_penalty, radius);
 
-    for (size_t i = 0; 2 * i + 1 < n ; i++) {
-        for (size_t j = 0; j < l; j++) {
-            coarsed_sequence[l*i+j] = (s[l*(2*i)+j] + s[l*(2*i+1)+j]) / 2;
-        }
+    ssize_t path_len;
+    size_t min_sequence_len = 2 * (radius + 1) + 1;
+
+    if (n < min_sequence_len ||
+
+m < min_sequence_len) {
+        log_debug("Sequences too short, falling back to regular DTWBD");
+        path_len = DTWBD(s, t, n, m, l, skip_penalty, NULL, path_distance, path_buffer);
+        log_function_exit("FastDTWBD", path_len);
+        return path_len;
     }
 
-    return coarsed_sequence;
-}
+    double *coarsed_s = get_coarsed_sequence(s, n, l);
+    double *coarsed_t = get_coarsed_sequence(t, m, l);
 
-size_t *get_window(size_t n, size_t m, size_t *path_buffer, size_t path_len, int radius) {
-    size_t *window = malloc(2*n*sizeof(size_t));
+    log_debug("Recursive FastDTWBD call with coarsed sequences");
+    path_len = FastDTWBD(coarsed_s, coarsed_t, n/2, m/2, l, skip_penalty,
+                         radius, path_distance, path_buffer);
 
-    for (size_t i = 0; i < n; i++) {
-        window[2*i] = m;
-        window[2*i+1] = 0;
-    }
+    size_t *window = get_window(n, m, path_buffer, path_len, radius);
 
-    for (size_t k = 0; k < path_len; k++) {
-        size_t i = path_buffer[2*k];
-        size_t j = path_buffer[2*k+1];
+    log_debug("Computing final DTWBD with window constraints");
+    path_len = DTWBD(s, t, n, m, l, skip_penalty, window, path_distance, path_buffer);
 
-        for (ssize_t x = -radius; x < radius + 1; x++) {
-            update_window(window, n, m, 2*(i + x), 2*(j - radius));
-            update_window(window, n, m, 2*(i + x) + 1, 2*(j - radius));
-            update_window(window, n, m, 2*(i + x), 2*(j + radius + 1) + 1);
-            update_window(window, n, m, 2*(i + x) + 1, 2*(j + radius + 1) + 1);
-        }
-    }
+    free(coarsed_s);
+    free(coarsed_t);
+    free(window);
 
-    return window;
-}
-
-void update_window(size_t *window, size_t n, size_t m, ssize_t i, ssize_t j) {
-    if (i < 0 ||
-
-i >= n) return;
-
-    if (j < 0) {
-        j = 0;
-    }
-    if (j > m - 1) {
-        j = m - 1;
-    }
-    if (j < window[2*i]) {
-        window[2*i] = j;
-    }
-    if (j >= window[2*i+1]) {
-        window[2*i+1] = j + 1;
-    }
-}
-
-double euclid_distance(double *x, double *y, size_t l) {
-    double sum = 0;
-    for (size_t i = 0; i < l; i++) {
-        double v = x[i] - y[i];
-        sum += v * v;
-    }
-    return sqrt(sum);
-}
-
-double get_distance(D_matrix_element *D_matrix, size_t n, size_t m, size_t *window, size_t i, size_t j) {
-    if (i < 0 || i >= n || j < 0 ||
-
-j >= m) {
-        return DBL_MAX;
-    }
-
-    if (window == NULL ||
-
-(j >= window[2*i] && j < window[2*i+1])) {
-        return D_matrix[i*m+j].distance;
-    }
-
-    return DBL_MAX;
-}
-
-D_matrix_element get_best_candidate(D_matrix_element *candidates, size_t n) {
-    double min_distance = DBL_MAX;
-    D_matrix_element best_candidate;
-
-    for (size_t i = 0; i < n; i++) {
-        if (candidates[i].distance < min_distance) {
-            min_distance = candidates[i].distance;
-            best_candidate = candidates[i];
-        }
-    }
-
-    return best_candidate;
-}
-
-void reverse_path(size_t *path, ssize_t path_len) {
-    for (size_t i = 0, j = path_len - 1; i < j; i++, j--) {
-        size_t tmp_s = path[2*i];
-        size_t tmp_t = path[2*i+1];
-        path[2*i] = path[2*j];
-        path[2*i+1] = path[2*j+1];
-        path[2*j] = tmp_s;
-        path[2*j+1] = tmp_t;
-    }
+    log_info("FastDTWBD completed with path_length=%zd, path_distance=%f",
+             path_len, *path_distance);
+    log_function_exit("FastDTWBD", path_len);
+    return path_len;
 }
