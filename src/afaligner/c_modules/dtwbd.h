@@ -7,6 +7,20 @@
 #include <stddef.h>
 #include "uthash.h"
 
+#if defined(_WIN32) || defined(__WIN32__)
+    #ifdef BUILDING_FASTDTWBD
+        #define EXPORT __declspec(dllexport)
+    #else
+        #define EXPORT __declspec(dllimport)
+    #endif
+#else
+    #ifdef BUILDING_FASTDTWBD
+        #define EXPORT __attribute__((visibility("default")))
+    #else
+        #define EXPORT
+    #endif
+#endif
+
 // Matrix element used for DTW/BD computation
 typedef struct {
     double distance;
@@ -26,12 +40,6 @@ EXPORT ssize_t DTWBD(
     size_t *path_buffer,
     double *path_distance
 );
-
-double *get_coarsed_sequence(double *s, size_t n, size_t l);
-
-size_t *get_window(size_t n, size_t m, size_t *path_buffer, size_t path_len, int radius);
-
-void update_window(size_t *window, size_t n, size_t m, ssize_t i, ssize_t j);
 
 // Helper functions
 double euclid_distance(double *x, double *y, size_t l);
