@@ -123,66 +123,97 @@ void reverse_path(size_t *path, ssize_t path_len) {
         path[2 * j + 1] = tmp_t;
     }
 
-    // Helper function to coarsen the sequences for FastDTWBD
-double *get_coarsed_sequence(double *s, size_t n, size_t dim) {
-    size_t coarse_len = n / 2;
-    double *coarse = malloc(coarse_len * dim * sizeof(double));
-
-    for (size_t i = 0; 2 * i + 1 < n; i++) {
-        for (size_t j = 0; j < dim; j++) {
-            coarse[i * dim + j] = (s[(2 * i) * dim + j] + s[(2 * i + 1) * dim + j]) / 2.0;
-        }
-    }
-
-    return coarse;
-}
-
-// Function to generate window based on coarse path (from FastDTW)
-size_t* get_window(size_t n, size_t m, size_t *path_buffer, ssize_t coarse_path_len, int radius) {
-    // Adapted from your original `get_window` logic
-    size_t *window = malloc(sizeof(size_t) * n * m);
-    // Add logic to generate the window from coarse path data
-    // ...
-    return window;
-}
-
-// FastDTWBD function - recursive, multi-resolution DTWBD
 ssize_t FastDTWBD(
-    double *s, double *t,
-    size_t n, size_t m,
-    size_t dim,
-    double skip_penalty,
-    int radius,
-    double *path_distance,
-    size_t *path_buffer
+    double *s,  // first sequence of MFCC frames – n x l contiguous array
+    double *t,  // second sequence of MFCC frames – m x l contiguous array
+    size_t n,   // number of frames in first sequence
+    size_t  m,   // number of frames in second sequence
+    size_t  l,   // number of MFCCs per frame
+    double skip_penalty,    // penalty for skipping one frame
+    int radius,             // radius of path projection
+    double *path_distance,  // place to store warping path distance
+    size_t *path_buffer     // buffer to store resulting warping path – (n+m) x 2 contiguous array
 ) {
-    const size_t min_len = 2 * (radius + 1) + 1;
+    ssize_t path_len;
+    size_t min_sequence_len = 2 * (radius + 1) + 1;
 
-    // Base case: use regular DTWBD when sequences are small enough
-    if (n < min_len || m < min_len) {
-        return dtwbd(s, n, t, m, dim, skip_penalty, NULL, path_buffer, path_distance);
+    if (n < min_sequence_len || m < min_sequence_len) {
+        return DTWBD(s, t, n, m, l, skip_penalty, NULL, path_distance, path_buffer);
     }
 
-    // Coarsing the sequences for recursive calls
-    double *s_coarse = get_coarsed_sequence(s, n, dim);
-    double *t_coarse = get_coarsed_sequence(t, m, dim);
+    double *coarsed_s = get_coarsed_sequence(s, n, l);
+    double *coarsed_t = get_coarsed_sequence(t, m, l);
 
-    // Recursive call on coarsed sequences
-    ssize_t coarse_path_len = FastDTWBD(
-        s_coarse, t_coarse, n / 2, m / 2, dim, skip_penalty, radius, path_distance, path_buffer
-    );
+    path_len = FastDTWBD(coarsed_s, coarsed_t, n/2, m/2, l, skip_penalty, radius, path_distance, path_buffer);
 
-    // Generate window based on coarse path data
-    size_t *window = get_window(n, m, path_buffer, coarse_path_len, radius);
+    size_t *window = get_window(n, m, path_buffer, path_len, radius);
 
-    // Now call regular DTWBD on finer resolution with the generated window
-    ssize_t path_len = dtwbd(s, n, t, m, dim, skip_penalty, window, path_buffer, path_distance);
+    path_len = DTWBD(s, t, n, m, l, skip_penalty, window, path_distance, path_buffer);
 
-    // Free dynamically allocated memory
-    free(s_coarse);
-    free(t_coarse);
+    free(coarsed_s);
+    free(coarsed_t);
     free(window);
 
     return path_len;
 }
+
+
+double *get_coarsed_sequence(double *s, size_t n, size_t l) {
+    size_t coarsed_sequence_len = n / 2;
+    double *coarsed_sequence = malloc(coarsed_sequence_len * l * sizeof(double));
+
+    for (size_t i = 0; 2 * i + 1 < n ; i++) {
+        for (size_t j = 0; j < l; j++) {
+            coarsed_sequence[l*i+j] = (s[l*(2*i)+j] + s[l*(2*i+1)+j]) / 2;
+        }
+    }
+
+    return coarsed_sequence;
+}
+
+
+size_t *get_window(size_t n, size_t m, size_t *path_buffer, size_t path_len, int radius) {
+    size_t *window = malloc(2*n*sizeof(size_t));
+
+    for (size_t i = 0; i < n; i++) {
+        window[2*i] = m;    // maximum value for lower limit
+        window[2*i+1] = 0;  // minimum value for upper limit
+    }
+
+    for (size_t k = 0; k < path_len; k++) {
+        size_t i = path_buffer[2*k];
+        size_t j = path_buffer[2*k+1];
+
+        for (ssize_t x = -radius; x < radius + 1; x++) {
+            // update lower window limit
+            update_window(window, n, m, 2*(i + x), 2*(j - radius));
+            update_window(window, n, m, 2*(i + x) + 1, 2*(j - radius));
+
+            // update upper window limit
+            update_window(window, n, m, 2*(i + x), 2*(j + radius + 1) + 1);
+            update_window(window, n, m, 2*(i + x) + 1, 2*(j + radius + 1) + 1);
+        }
+    }
+
+    return window;
+}
+
+
+void update_window(size_t *window, size_t n, size_t m, ssize_t i, ssize_t j) {
+    if (i < 0 || i >= n) return;
+
+    if (j < 0) {
+        j = 0;
+    }
+    if (j > m - 1) {
+        j = m - 1;
+    }
+    if (j < window[2*i]) {
+        window[2*i] = j;
+    }
+    if (j >= window[2*i+1]) {
+        window[2*i+1] = j + 1;
+    }
+}
+
 }

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "dtwbd.h" // for D_matrix_element
 #include "uthash.h"
+#include <stdbool.h>
 
 
 typedef struct {
