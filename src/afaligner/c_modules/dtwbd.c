@@ -282,7 +282,7 @@ double *get_coarsed_sequence(double *s, size_t n, size_t l) {
 
     // Create the coarsed sequence
     for (size_t i = 0; 2 * i + 1 < n; i++) {
-        log_debug("Creating coarsed sequence element %zu", i);
+        #log_debug("Creating coarsed sequence element %zu", i);
 
         for (size_t j = 0; j < l; j++) {
             coarsed_sequence[l * i + j] = (s[l * (2 * i) + j] + s[l * (2 * i + 1) + j]) / 2;
