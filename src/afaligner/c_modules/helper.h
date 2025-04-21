@@ -16,6 +16,27 @@ typedef struct {
     ssize_t prev_j;
 } D_matrix_element;
 
+// Sparse matrix element structure
+typedef struct sparse_element {
+    size_t i;
+    size_t j;
+    D_matrix_element value;
+    struct sparse_element* next;
+} sparse_element;
+
+// Sparse matrix structure
+typedef struct sparse_matrix {
+    size_t rows;
+    size_t cols;
+    sparse_element* elements;
+} sparse_matrix;
+
+// Sparse matrix operations
+sparse_matrix* create_sparse_matrix(size_t rows, size_t cols);
+void set_sparse_value(sparse_matrix* matrix, size_t i, size_t j, D_matrix_element value);
+D_matrix_element get_sparse_value(sparse_matrix* matrix, size_t i, size_t j);
+void free_sparse_matrix(sparse_matrix* matrix);
+
 // Function declarations for sequence processing
 double *get_coarsed_sequence(double *s, size_t n, size_t l);
 
