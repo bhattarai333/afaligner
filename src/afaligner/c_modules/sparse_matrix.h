@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include "dtwbd.h" // for D_matrix_element
+#include "uthash.h"
+
 
 typedef struct {
     size_t i;

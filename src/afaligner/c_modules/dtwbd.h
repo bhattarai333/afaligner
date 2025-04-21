@@ -5,6 +5,8 @@
 #include <float.h>
 #include <math.h>
 #include <stddef.h>
+#include "uthash.h"
+
 
 // Matrix element used for DTW/BD computation
 typedef struct {
@@ -18,8 +20,8 @@ ssize_t dtwbd(
     double *x, size_t n,
     double *y, size_t m,
     size_t dim,
-    size_t *window,
     double skip_penalty,
+    size_t *window,
     size_t *path_buffer,
     double *path_distance
 );
