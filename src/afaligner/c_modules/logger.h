@@ -24,6 +24,7 @@
 
 // Logging functions
 EXPORT void log_info(const char *format, ...);
+EXPORT void log_warn(const char *format, ...);
 EXPORT void log_debug(const char *format, ...);
 EXPORT void log_error(const char *format, ...);
 EXPORT void log_memory_alloc(const void *ptr, size_t size, const char *func, int line);

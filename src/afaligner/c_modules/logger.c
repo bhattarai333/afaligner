@@ -29,6 +29,15 @@ void log_info(const char *format, ...) {
 #endif
 }
 
+void log_warn(const char *format, ...) {
+#if LOG_WARN_ENABLED
+    va_list args;
+    va_start(args, format);
+    log_with_prefix("WARN", format, args);
+    va_end(args);
+#endif
+}
+
 void log_debug(const char *format, ...) {
 #if LOG_DEBUG_ENABLED
     va_list args;
