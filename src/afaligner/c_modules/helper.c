@@ -171,3 +171,4 @@ void reverse_path(size_t *path, ssize_t path_len) {
     log_debug("Path reversal completed");
     log_function_exit("reverse_path", path_len);
 }
+

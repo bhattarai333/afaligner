@@ -7,6 +7,80 @@
 #include "helper.h"
 #include "logger.h"
 
+
+// Update the struct definitions at the top
+typedef struct D_matrix_element {
+    double distance;
+    ssize_t prev_i;
+    ssize_t prev_j;
+} D_matrix_element;
+
+typedef struct sparse_element {
+    size_t i;
+    size_t j;
+    D_matrix_element value;
+    struct sparse_element* next;
+} sparse_element;
+
+typedef struct sparse_matrix {
+    size_t rows;
+    size_t cols;
+    sparse_element* elements;
+} sparse_matrix;
+
+// Add the missing create function
+static sparse_matrix* create_sparse_matrix(size_t rows, size_t cols) {
+    sparse_matrix* matrix = malloc(sizeof(sparse_matrix));
+    if (!matrix) {
+        log_error("Failed to allocate sparse matrix");
+        return NULL;
+    }
+    matrix->rows = rows;
+    matrix->cols = cols;
+    matrix->elements = NULL;
+    return matrix;
+}
+
+// Add the missing free function
+static void free_sparse_matrix(sparse_matrix* matrix) {
+    sparse_element* current = matrix->elements;
+    while (current) {
+        sparse_element* next = current->next;
+        free(current);
+        current = next;
+    }
+    free(matrix);
+}
+
+// Define matrix element getter
+static D_matrix_element get_matrix_element(sparse_matrix* matrix, size_t i, size_t j) {
+    sparse_element* current = matrix->elements;
+    while (current) {
+        if (current->i == i && current->j == j) {
+            return current->value;
+        }
+        current = current->next;
+    }
+    D_matrix_element default_elem = {DBL_MAX, -1, -1};
+    return default_elem;
+}
+
+// Define matrix element setter
+static void set_matrix_element(sparse_matrix* matrix, size_t i, size_t j, D_matrix_element value) {
+    sparse_element* elem = malloc(sizeof(sparse_element));
+    if (!elem) {
+        log_error("Failed to allocate sparse matrix element at (%zu, %zu)", i, j);
+        return;
+    }
+    elem->i = i;
+    elem->j = j;
+    elem->value = value;
+    elem->next = matrix->elements;
+    matrix->elements = elem;
+}
+
+// Remove the previous set_value and get_value functions as they're replaced by these ones
+
 ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
               double skip_penalty, size_t *window, double *path_distance,
               size_t *path_buffer) {
