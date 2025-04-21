@@ -122,4 +122,67 @@ void reverse_path(size_t *path, ssize_t path_len) {
         path[2 * j] = tmp_s;
         path[2 * j + 1] = tmp_t;
     }
+
+    // Helper function to coarsen the sequences for FastDTWBD
+double *get_coarsed_sequence(double *s, size_t n, size_t dim) {
+    size_t coarse_len = n / 2;
+    double *coarse = malloc(coarse_len * dim * sizeof(double));
+
+    for (size_t i = 0; 2 * i + 1 < n; i++) {
+        for (size_t j = 0; j < dim; j++) {
+            coarse[i * dim + j] = (s[(2 * i) * dim + j] + s[(2 * i + 1) * dim + j]) / 2.0;
+        }
+    }
+
+    return coarse;
+}
+
+// Function to generate window based on coarse path (from FastDTW)
+size_t* get_window(size_t n, size_t m, size_t *path_buffer, ssize_t coarse_path_len, int radius) {
+    // Adapted from your original `get_window` logic
+    size_t *window = malloc(sizeof(size_t) * n * m);
+    // Add logic to generate the window from coarse path data
+    // ...
+    return window;
+}
+
+// FastDTWBD function - recursive, multi-resolution DTWBD
+ssize_t FastDTWBD(
+    double *s, double *t,
+    size_t n, size_t m,
+    size_t dim,
+    double skip_penalty,
+    int radius,
+    double *path_distance,
+    size_t *path_buffer
+) {
+    const size_t min_len = 2 * (radius + 1) + 1;
+
+    // Base case: use regular DTWBD when sequences are small enough
+    if (n < min_len || m < min_len) {
+        return dtwbd(s, n, t, m, dim, skip_penalty, NULL, path_buffer, path_distance);
+    }
+
+    // Coarsing the sequences for recursive calls
+    double *s_coarse = get_coarsed_sequence(s, n, dim);
+    double *t_coarse = get_coarsed_sequence(t, m, dim);
+
+    // Recursive call on coarsed sequences
+    ssize_t coarse_path_len = FastDTWBD(
+        s_coarse, t_coarse, n / 2, m / 2, dim, skip_penalty, radius, path_distance, path_buffer
+    );
+
+    // Generate window based on coarse path data
+    size_t *window = get_window(n, m, path_buffer, coarse_path_len, radius);
+
+    // Now call regular DTWBD on finer resolution with the generated window
+    ssize_t path_len = dtwbd(s, n, t, m, dim, skip_penalty, window, path_buffer, path_distance);
+
+    // Free dynamically allocated memory
+    free(s_coarse);
+    free(t_coarse);
+    free(window);
+
+    return path_len;
+}
 }

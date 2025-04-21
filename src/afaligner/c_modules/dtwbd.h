@@ -26,6 +26,17 @@ ssize_t dtwbd(
     double *path_distance
 );
 
+ssize_t FastDTWBD(
+    double *s, double *t,
+    size_t n, size_t m,
+    size_t dim,
+    double skip_penalty,
+    int radius,
+    double *path_distance,
+    size_t *path_buffer
+);
+
+
 // Helper functions
 double euclid_distance(double *x, double *y, size_t l);
 
