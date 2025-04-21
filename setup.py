@@ -62,7 +62,7 @@ setup(
     ],
     ext_modules=[CTypesLibrary(
         'afaligner.c_modules.dtwbd',
-        sources=['src/afaligner/c_modules/dtwbd.c']
+        sources=['src/afaligner/c_modules/dtwbd.c', 'src/afaligner/c_modules/sparse_matrix.c']
     )],
     cmdclass={'build_ext': build_ext}
 )
