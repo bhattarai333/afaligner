@@ -14,10 +14,9 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
     log_function_entry("DTWBD");
     log_info("Starting DTWBD with n=%zu, m=%zu, l=%zu, skip_penalty=%f", n, m, l, skip_penalty);
 
-    // Create sparse matrix instead of full matrix allocation
+    // Create sparse matrix
     sparse_matrix* D_matrix = create_sparse_matrix(n, m);
     if (!D_matrix) {
-        log_error("Failed to create sparse matrix");
         return -1;
     }
 
@@ -30,12 +29,15 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
 
     // Initialize D_matrix (only within window)
     for (size_t i = 0; i < n; i++) {
-        for (size_t j = window ? window[2*i] : 0;
-             j < (window ? window[2*i+1] : m); j++) {
-            D_matrix_element elem;
-            elem.distance = euclid_distance(&s[i*l], &t[j*l], l);
-            elem.prev_i = -1;
-            elem.prev_j = -1;
+        size_t start_j = window ? window[2*i] : 0;
+        size_t end_j = window ? window[2*i+1] : m;
+
+        for (size_t j = start_j; j < end_j; j++) {
+            D_matrix_element elem = {
+                .distance = euclid_distance(&s[i*l], &t[j*l], l),
+                .prev_i = -1,
+                .prev_j = -1
+            };
             set_value(D_matrix, i, j, elem);
         }
     }
@@ -52,34 +54,28 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
             // Regular step
             if (i > 0 && j > 0) {
                 D_matrix_element prev = get_value(D_matrix, i-1, j-1);
-                if (prev.distance != DBL_MAX) {
-                    candidates[num_candidates].distance = prev.distance + curr.distance;
-                    candidates[num_candidates].prev_i = i-1;
-                    candidates[num_candidates].prev_j = j-1;
-                    num_candidates++;
-                }
+                candidates[num_candidates].distance = prev.distance + curr.distance;
+                candidates[num_candidates].prev_i = i-1;
+                candidates[num_candidates].prev_j = j-1;
+                num_candidates++;
             }
 
             // Skip in s
             if (i > 0) {
                 D_matrix_element prev = get_value(D_matrix, i-1, j);
-                if (prev.distance != DBL_MAX) {
-                    candidates[num_candidates].distance = prev.distance + skip_penalty;
-                    candidates[num_candidates].prev_i = i-1;
-                    candidates[num_candidates].prev_j = j;
-                    num_candidates++;
-                }
+                candidates[num_candidates].distance = prev.distance + skip_penalty;
+                candidates[num_candidates].prev_i = i-1;
+                candidates[num_candidates].prev_j = j;
+                num_candidates++;
             }
 
             // Skip in t
             if (j > 0) {
                 D_matrix_element prev = get_value(D_matrix, i, j-1);
-                if (prev.distance != DBL_MAX) {
-                    candidates[num_candidates].distance = prev.distance + skip_penalty;
-                    candidates[num_candidates].prev_i = i;
-                    candidates[num_candidates].prev_j = j-1;
-                    num_candidates++;
-                }
+                candidates[num_candidates].distance = prev.distance + skip_penalty;
+                candidates[num_candidates].prev_i = i;
+                candidates[num_candidates].prev_j = j-1;
+                num_candidates++;
             }
 
             if (num_candidates > 0) {
@@ -117,7 +113,9 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
             ssize_t next_i = curr.prev_i;
             ssize_t next_j = curr.prev_j;
 
-            if (next_i < 0 || next_j < 0) break;
+            if (next_i < 0 ||
+
+next_j < 0) break;
 
             curr_i = next_i;
             curr_j = next_j;
