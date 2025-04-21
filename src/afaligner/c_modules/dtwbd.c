@@ -252,10 +252,10 @@ ssize_t FastDTWBD(
             path_len = DTWBD(s, n, t, m, l, skip_penalty, window, path_buffer, path_distance);
             free(window);
         } else {
-            log_warning("Window creation failed.");
+            log_warn("Window creation failed.");
         }
     } else {
-        log_warning("Recursive call returned an invalid path length.");
+        log_warn("Recursive call returned an invalid path length.");
     }
 
     // Cleanup
