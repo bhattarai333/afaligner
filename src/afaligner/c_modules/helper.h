@@ -9,14 +9,14 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-// Struct definition for D_matrix element
+// First, define the D_matrix_element structure
 typedef struct {
     double distance;
     ssize_t prev_i;
     ssize_t prev_j;
 } D_matrix_element;
 
-// Sparse matrix element structure
+// Then define the sparse matrix structures
 typedef struct sparse_element {
     size_t i;
     size_t j;
@@ -24,8 +24,7 @@ typedef struct sparse_element {
     struct sparse_element* next;
 } sparse_element;
 
-// Sparse matrix structure
-typedef struct sparse_matrix {
+typedef struct {
     size_t rows;
     size_t cols;
     sparse_element* elements;
@@ -54,27 +53,27 @@ void reverse_path(size_t *path, ssize_t path_len);
 
 // Main algorithm functions
 ssize_t DTWBD(
-    double *s,          // first sequence of MFCC frames – n x l contiguous array
-    double *t,          // second sequence of MFCC frames – m x l contiguous array
-    size_t n,           // number of frames in first sequence
-    size_t m,           // number of frames in second sequence
-    size_t l,           // number of MFCCs per frame
-    double skip_penalty,// penalty for skipping one frame
-    size_t *window,     // n x 2 contiguous array for frame ranges
-    double *path_distance,  // place to store warping path distance
-    size_t *path_buffer    // buffer to store resulting warping path
+    double *s,
+    double *t,
+    size_t n,
+    size_t m,
+    size_t l,
+    double skip_penalty,
+    size_t *window,
+    double *path_distance,
+    size_t *path_buffer
 );
 
 ssize_t FastDTWBD(
-    double *s,          // first sequence of MFCC frames – n x l contiguous array
-    double *t,          // second sequence of MFCC frames – m x l contiguous array
-    size_t n,           // number of frames in first sequence
-    size_t m,           // number of frames in second sequence
-    size_t l,           // number of MFCCs per frame
-    double skip_penalty,// penalty for skipping one frame
-    int radius,         // radius of path projection
-    double *path_distance,  // place to store warping path distance
-    size_t *path_buffer    // buffer to store resulting warping path
+    double *s,
+    double *t,
+    size_t n,
+    size_t m,
+    size_t l,
+    double skip_penalty,
+    int radius,
+    double *path_distance,
+    size_t *path_buffer
 );
 
 #endif // HELPER_H

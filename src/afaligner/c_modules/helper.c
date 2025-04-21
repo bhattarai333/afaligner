@@ -109,30 +109,38 @@ double euclid_distance(double *x, double *y, size_t l) {
     return result;
 }
 
-double get_distance(sparse_matrix* matrix, size_t n, size_t m, size_t* window, size_t i, size_t j) {
-    log_function_entry("get_distance");
+double get_distance_array(D_matrix_element *D_matrix, size_t n, size_t m, size_t *window, size_t i, size_t j) {
+    if (window != NULL) {
+        if (i >= n || j >= m || j < window[2*i] ||
 
-    // Check bounds
-    if (i >= n || j >= m) {
-        log_function_exit("get_distance", DBL_MAX);
+j >= window[2*i+1]) {
+            return DBL_MAX;
+        }
+    } else if (i >= n ||
+
+j >= m) {
+        return DBL_MAX;
+    }
+    return D_matrix[i*m + j].distance;
+}
+
+// In dtwbd.c, replace the get_distance function with:
+static double get_distance_sparse(sparse_matrix* matrix, size_t n, size_t m, size_t* window, size_t i, size_t j) {
+    if (window != NULL) {
+        if (i >= n || j >= m || j < window[2*i] || j >= window[2*i+1]) {
+            log_function_exit("get_distance_sparse", DBL_MAX);
+            return DBL_MAX;
+        }
+    } else if (i >= n || j >= m) {
+        log_function_exit("get_distance_sparse", DBL_MAX);
         return DBL_MAX;
     }
 
-    // Check window constraints
-    if (window != NULL) {
-        if (j < window[2*i] || j >= window[2*i+1]) {
-            log_function_exit("get_distance", DBL_MAX);
-            return DBL_MAX;
-        }
-    }
-
-    // Get value from sparse matrix
     D_matrix_element elem = get_value(matrix, i, j);
-    double result = elem.distance;
-
-    log_function_exit("get_distance", result);
-    return result;
+    return elem.distance;
 }
+
+
 
 D_matrix_element get_best_candidate(D_matrix_element *candidates, size_t n) {
     log_function_entry("get_best_candidate");
