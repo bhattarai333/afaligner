@@ -25,7 +25,7 @@ typedef struct {
 
 // API
 SparseMatrix *create_sparse_matrix();
-void set_element(SparseMatrix *mat, size_t i, size_t j, D_matrix_element value);
+bool set_element(SparseMatrix *mat, size_t i, size_t j, D_matrix_element value);
 D_matrix_element *get_element(SparseMatrix *mat, size_t i, size_t j);
 void free_sparse_matrix(SparseMatrix *mat);
 
