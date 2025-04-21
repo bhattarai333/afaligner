@@ -1,9 +1,73 @@
+//helper.c
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
 #include "helper.h"
 #include "logger.h"
+
+// Add these implementations to helper.c
+
+sparse_matrix* create_sparse_matrix(size_t rows, size_t cols) {
+    log_function_entry("create_sparse_matrix");
+    sparse_matrix* matrix = malloc(sizeof(sparse_matrix));
+    if (!matrix) {
+        log_error("Failed to allocate sparse matrix");
+        return NULL;
+    }
+    matrix->rows = rows;
+    matrix->cols = cols;
+    matrix->elements = NULL;
+    log_debug("Created sparse matrix with dimensions %zux%zu", rows, cols);
+    log_function_exit("create_sparse_matrix", 0);
+    return matrix;
+}
+
+void set_sparse_value(sparse_matrix* matrix, size_t i, size_t j, D_matrix_element value) {
+    log_function_entry("set_sparse_value");
+    sparse_element* elem = malloc(sizeof(sparse_element));
+    if (!elem) {
+        log_error("Failed to allocate sparse matrix element at (%zu, %zu)", i, j);
+        return;
+    }
+    elem->i = i;
+    elem->j = j;
+    elem->value = value;
+    elem->next = matrix->elements;
+    matrix->elements = elem;
+    log_debug("Set value at (%zu, %zu) with distance %f", i, j, value.distance);
+    log_function_exit("set_sparse_value", 0);
+}
+
+D_matrix_element get_sparse_value(sparse_matrix* matrix, size_t i, size_t j) {
+    log_function_entry("get_sparse_value");
+    sparse_element* current = matrix->elements;
+    while (current) {
+        if (current->i == i && current->j == j) {
+            log_debug("Found value at (%zu, %zu) with distance %f", i, j, current->value.distance);
+            log_function_exit("get_sparse_value", current->value.distance);
+            return current->value;
+        }
+        current = current->next;
+    }
+    D_matrix_element default_elem = {DBL_MAX, -1, -1};
+    log_debug("No value found at (%zu, %zu), returning default", i, j);
+    log_function_exit("get_sparse_value", DBL_MAX);
+    return default_elem;
+}
+
+void free_sparse_matrix(sparse_matrix* matrix) {
+    log_function_entry("free_sparse_matrix");
+    sparse_element* current = matrix->elements;
+    while (current) {
+        sparse_element* next = current->next;
+        free(current);
+        current = next;
+    }
+    free(matrix);
+    log_debug("Freed sparse matrix and all elements");
+    log_function_exit("free_sparse_matrix", 0);
+}
 
 double *get_coarsed_sequence(double *s, size_t n, size_t l) {
     log_function_entry("get_coarsed_sequence");
