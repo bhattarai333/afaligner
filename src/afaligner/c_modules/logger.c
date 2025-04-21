@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 static FILE* log_file = NULL;
+static bool logger_initialized = false;
 static const char* level_strings[] = {
     "DEBUG",
     "INFO",
