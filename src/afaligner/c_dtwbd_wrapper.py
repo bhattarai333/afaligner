@@ -15,6 +15,7 @@ def c_FastDTWBD(s, t, skip_penalty, radius):
     """
     Wrapper for FastDTWDB C implementation.
     """
+    print("Using bhattarai333's branch of afaligner")
     c_module = ctypes.cdll[os.path.join(BASE_DIR, 'c_modules/dtwbd.so')]
     c_module.FastDTWBD.argtypes = (
         ctypes.POINTER(ctypes.c_double),
