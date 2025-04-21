@@ -14,7 +14,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
     log_function_entry("DTWBD");
     log_info("Starting DTWBD with n=%zu, m=%zu, l=%zu, skip_penalty=%f", n, m, l, skip_penalty);
 
-    // Create sparse matrix
+    // Create sparse matrix instead of full matrix allocation
     sparse_matrix* D_matrix = create_sparse_matrix(n, m);
     if (!D_matrix) {
         log_error("Failed to create sparse matrix");
@@ -30,10 +30,8 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
 
     // Initialize D_matrix (only within window)
     for (size_t i = 0; i < n; i++) {
-        size_t start_j = window ? window[2*i] : 0;
-        size_t end_j = window ? window[2*i+1] : m;
-
-        for (size_t j = start_j; j < end_j; j++) {
+        for (size_t j = window ? window[2*i] : 0;
+             j < (window ? window[2*i+1] : m); j++) {
             D_matrix_element elem;
             elem.distance = euclid_distance(&s[i*l], &t[j*l], l);
             elem.prev_i = -1;
