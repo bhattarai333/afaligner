@@ -408,6 +408,13 @@ ssize_t FastDTWBD(
     DEBUG_LOG("Parameters: n=%zu, m=%zu, l=%zu, radius=%zu, skip_penalty=%f",
               n, m, l, radius, skip_penalty);
 
+        // Add at the start of the function
+    if (radius >= n || radius >= m) {
+        ERROR_LOG("Radius %zu too large for sequence dimensions n=%zu, m=%zu", radius, n, m);
+        radius = (n < m ? n : m) / 2;  // Set to half of smaller dimension
+        DEBUG_LOG("Adjusted radius to %zu", radius);
+    }
+
     // Input validation
     if (!s || !t) {
         ERROR_LOG("Null input sequences");
