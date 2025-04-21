@@ -4,19 +4,20 @@
 #include <float.h>
 #include <stdio.h>
 
-#if defined(_MSC_VER)
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-
-__declspec(dllimport) size_t FastDTWBD();
-__declspec(dllimport) size_t DTWBD();
-#endif
-
 typedef struct {
     double distance;
     ssize_t prev_i;
     ssize_t prev_j;
 } D_matrix_element;
+
+ssize_t FastDTWBD(
+    double *s, double *t,
+    size_t n, size_t m, size_t l,
+    double skip_penalty,
+    size_t radius,
+    double *path_distance,
+    size_t *path_buffer
+);
 
 // Helper function to convert 2D coordinates to 1D index in banded matrix
 static inline size_t get_band_index(size_t i, size_t j, size_t band_width, size_t j_offset) {
@@ -110,9 +111,7 @@ void reverse_path(size_t *path, ssize_t path_len) {
 
 double get_distance(D_matrix_element *D_matrix, size_t n, size_t band_width, size_t j_offset,
                    size_t i, size_t j) {
-    if (i < 0 || i >= n ||
-
-j < 0) {
+    if (i < 0 || i >= n || j < 0) {
         return DBL_MAX;
     }
 
@@ -257,5 +256,80 @@ ssize_t DTWBD(
     // Clean up
     free(D_matrix);
 
+    return path_len;
+}
+
+ssize_t FastDTWBD(
+    double *s, double *t,
+    size_t n, size_t m, size_t l,
+    double skip_penalty,
+    size_t radius,
+    double *path_distance,
+    size_t *path_buffer
+) {
+    // Base case for recursion
+    if (n < 2 || m < 2) {
+        return DTWBD(s, t, n, m, l, skip_penalty, NULL, path_distance, path_buffer);
+    }
+
+    // Calculate size of coarsed sequences
+    size_t coarsed_n = n / 2;
+    size_t coarsed_m = m / 2;
+
+    // Allocate memory for coarsed sequences
+    double *coarsed_s = malloc(sizeof(double) * coarsed_n * l);
+    double *coarsed_t = malloc(sizeof(double) * coarsed_m * l);
+    if (!coarsed_s || !coarsed_t) {
+        free(coarsed_s);
+        free(coarsed_t);
+        return -1;
+    }
+
+    // Create coarsed sequences
+    get_coarsed_sequence(s, n, l, radius, coarsed_s);
+    get_coarsed_sequence(t, m, l, radius, coarsed_t);
+
+    // Recursive call with coarsed sequences
+    size_t *coarsed_path = malloc(sizeof(size_t) * (coarsed_n + coarsed_m) * 2);
+    if (!coarsed_path) {
+        free(coarsed_s);
+        free(coarsed_t);
+        return -1;
+    }
+
+    double coarsed_distance;
+    ssize_t coarsed_path_len = FastDTWBD(
+        coarsed_s, coarsed_t,
+        coarsed_n, coarsed_m, l,
+        skip_penalty, radius,
+        &coarsed_distance,
+        coarsed_path
+    );
+
+    // Clean up coarsed sequences
+    free(coarsed_s);
+    free(coarsed_t);
+
+    if (coarsed_path_len < 0) {
+        free(coarsed_path);
+        return -1;
+    }
+
+    // Calculate window from coarsed path
+    size_t *window = NULL;
+    get_window(coarsed_path, coarsed_path_len, radius, n, m, &window);
+    free(coarsed_path);
+
+    if (!window) {
+        return -1;
+    }
+
+    // Update window to ensure minimum width
+    update_window(window, n, m, radius);
+
+    // Final DTW with window
+    ssize_t path_len = DTWBD(s, t, n, m, l, skip_penalty, window, path_distance, path_buffer);
+
+    free(window);
     return path_len;
 }
