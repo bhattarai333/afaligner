@@ -10,25 +10,6 @@ typedef struct D_matrix_element {
     ssize_t prev_j;
 } D_matrix_element;
 
-typedef struct sparse_element {
-    size_t i;
-    size_t j;
-    D_matrix_element value;
-    struct sparse_element* next;
-} sparse_element;
-
-typedef struct sparse_matrix {
-    size_t rows;
-    size_t cols;
-    sparse_element* elements;
-} sparse_matrix;
-
-// Sparse matrix operations
-sparse_matrix* create_sparse_matrix(size_t rows, size_t cols);
-void set_sparse_value(sparse_matrix* matrix, size_t i, size_t j, D_matrix_element value);
-D_matrix_element get_sparse_value(sparse_matrix* matrix, size_t i, size_t j);
-void free_sparse_matrix(sparse_matrix* matrix);
-
 // Helper functions
 double* get_coarsed_sequence(double* s, size_t n, size_t l);
 size_t* get_window(size_t n, size_t m, size_t* path_buffer, size_t path_len, int radius);

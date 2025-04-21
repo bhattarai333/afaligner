@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "helper.h"
 #include "logger.h"
+#include "sparse_matrix.h"
 
 sparse_matrix* create_sparse_matrix(size_t rows, size_t cols) {
     log_function_entry("create_sparse_matrix");
@@ -181,19 +182,18 @@ double get_distance_array(D_matrix_element *D_matrix, size_t n, size_t m, size_t
     return D_matrix[i*m + j].distance;
 }
 
-// In dtwbd.c, replace the get_distance function with:
-static double get_distance_sparse(sparse_matrix* matrix, size_t n, size_t m, size_t* window, size_t i, size_t j) {
+double get_distance_sparse(sparse_matrix* matrix, size_t n, size_t m, size_t* window, size_t i, size_t j) {
+    log_function_entry("get_distance_sparse");
+
     if (window != NULL) {
-        if (i >= n || j >= m || j < window[2*i] || j >= window[2*i+1]) {
+        if (j < window[2*i] || j >= window[2*i+1]) {
             log_function_exit("get_distance_sparse", DBL_MAX);
             return DBL_MAX;
         }
-    } else if (i >= n || j >= m) {
-        log_function_exit("get_distance_sparse", DBL_MAX);
-        return DBL_MAX;
     }
 
     D_matrix_element elem = get_value(matrix, i, j);
+    log_function_exit("get_distance_sparse", elem.distance);
     return elem.distance;
 }
 
