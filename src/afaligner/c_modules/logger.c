@@ -38,6 +38,17 @@ void log_debug(const char *format, ...) {
 #endif
 }
 
+void log_error(const char *format, ...) {
+#if LOG_DEBUG_ENABLED
+    va_list args;
+    va_start(args, format);
+    fprintf(stderr, "ERROR: ");
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fprintf(stderr, "\n");
+#endif
+}
+
 void log_memory_alloc(const void *ptr, size_t size, const char *func, int line) {
 #if LOG_MEM_ENABLED
     FILE *log_file = fopen(LOG_FILE_PATH, "a");
