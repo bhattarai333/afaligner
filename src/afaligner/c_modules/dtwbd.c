@@ -7,72 +7,6 @@
 #include "helper.h"
 #include "logger.h"
 
-// Sparse matrix element structure
-typedef struct sparse_element {
-    size_t i;
-    size_t j;
-    D_matrix_element value;
-    struct sparse_element* next;
-} sparse_element;
-
-// Sparse matrix structure
-typedef struct {
-    size_t rows;
-    size_t cols;
-    sparse_element* elements;
-} sparse_matrix;
-
-// Create sparse matrix
-static sparse_matrix* create_sparse_matrix(size_t rows, size_t cols) {
-    sparse_matrix* matrix = malloc(sizeof(sparse_matrix));
-    if (!matrix) {
-        log_error("Failed to allocate sparse matrix");
-        return NULL;
-    }
-    matrix->rows = rows;
-    matrix->cols = cols;
-    matrix->elements = NULL;
-    return matrix;
-}
-
-// Set value in sparse matrix
-static void set_value(sparse_matrix* matrix, size_t i, size_t j, D_matrix_element value) {
-    sparse_element* elem = malloc(sizeof(sparse_element));
-    if (!elem) {
-        log_error("Failed to allocate sparse matrix element at (%zu, %zu)", i, j);
-        return;
-    }
-    elem->i = i;
-    elem->j = j;
-    elem->value = value;
-    elem->next = matrix->elements;
-    matrix->elements = elem;
-}
-
-// Get value from sparse matrix
-static D_matrix_element get_value(sparse_matrix* matrix, size_t i, size_t j) {
-    sparse_element* current = matrix->elements;
-    while (current) {
-        if (current->i == i && current->j == j) {
-            return current->value;
-        }
-        current = current->next;
-    }
-    D_matrix_element default_elem = {DBL_MAX, -1, -1};
-    return default_elem;
-}
-
-// Free sparse matrix
-static void free_sparse_matrix(sparse_matrix* matrix) {
-    sparse_element* current = matrix->elements;
-    while (current) {
-        sparse_element* next = current->next;
-        free(current);
-        current = next;
-    }
-    free(matrix);
-}
-
 ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
               double skip_penalty, size_t *window, double *path_distance,
               size_t *path_buffer) {
@@ -82,6 +16,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
     // Create sparse matrix
     sparse_matrix* D_matrix = create_sparse_matrix(n, m);
     if (!D_matrix) {
+        log_error("Failed to create sparse matrix");
         return -1;
     }
 
@@ -102,7 +37,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
             elem.distance = euclid_distance(&s[i*l], &t[j*l], l);
             elem.prev_i = -1;
             elem.prev_j = -1;
-            set_value(D_matrix, i, j, elem);
+            set_matrix_element(D_matrix, i, j, elem);
         }
     }
 
@@ -111,13 +46,13 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
         for (size_t j = window ? window[2*i] : 0;
              j < (window ? window[2*i+1] : m); j++) {
 
-            D_matrix_element curr = get_value(D_matrix, i, j);
+            D_matrix_element curr = get_matrix_element(D_matrix, i, j);
             D_matrix_element candidates[3];
             size_t num_candidates = 0;
 
             // Regular step
             if (i > 0 && j > 0) {
-                D_matrix_element prev = get_value(D_matrix, i-1, j-1);
+                D_matrix_element prev = get_matrix_element(D_matrix, i-1, j-1);
                 candidates[num_candidates].distance = prev.distance + curr.distance;
                 candidates[num_candidates].prev_i = i-1;
                 candidates[num_candidates].prev_j = j-1;
@@ -126,7 +61,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
 
             // Skip in s
             if (i > 0) {
-                D_matrix_element prev = get_value(D_matrix, i-1, j);
+                D_matrix_element prev = get_matrix_element(D_matrix, i-1, j);
                 candidates[num_candidates].distance = prev.distance + skip_penalty;
                 candidates[num_candidates].prev_i = i-1;
                 candidates[num_candidates].prev_j = j;
@@ -135,7 +70,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
 
             // Skip in t
             if (j > 0) {
-                D_matrix_element prev = get_value(D_matrix, i, j-1);
+                D_matrix_element prev = get_matrix_element(D_matrix, i, j-1);
                 candidates[num_candidates].distance = prev.distance + skip_penalty;
                 candidates[num_candidates].prev_i = i;
                 candidates[num_candidates].prev_j = j-1;
@@ -147,7 +82,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
                 curr.distance = best.distance;
                 curr.prev_i = best.prev_i;
                 curr.prev_j = best.prev_j;
-                set_value(D_matrix, i, j, curr);
+                set_matrix_element(D_matrix, i, j, curr);
 
                 if (i == n-1 && j == m-1) {
                     match = true;
@@ -173,7 +108,7 @@ ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
             path_buffer[2*path_len+1] = curr_j;
             path_len++;
 
-            D_matrix_element curr = get_value(D_matrix, curr_i, curr_j);
+            D_matrix_element curr = get_matrix_element(D_matrix, curr_i, curr_j);
             ssize_t next_i = curr.prev_i;
             ssize_t next_j = curr.prev_j;
 
