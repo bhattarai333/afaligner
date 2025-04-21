@@ -1,3 +1,10 @@
+#define _POSIX_C_SOURCE 200809L  // For ssize_t on some systems
+#include <stdlib.h>
+#include <stddef.h>
+#include <sys/types.h>
+#include "helper.h"
+#include "logger.h"
+
 ssize_t DTWBD(double *s, double *t, size_t n, size_t m, size_t l,
               double skip_penalty, size_t *window, double *path_distance,
               size_t *path_buffer) {
